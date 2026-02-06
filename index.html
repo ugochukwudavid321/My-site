@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shoffol Managers | Bureau de Change</title>
+    <meta name="description" content="Premium currency exchange, gold sales, and foreign transactions.">
+    
+    <!-- Fonts: Plus Jakarta Sans for modern, clean readability -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            white: '#FAFAFA',
+                            black: '#1A1A1A',
+                            green: '#0F5132', // Deep Emerald
+                            greenLight: '#34D399', // Glow accent
+                            gold: '#D4AF37', // Metallic Gold
+                        }
+                    },
+                    backgroundImage: {
+                        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- GSAP & ScrollTrigger -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        body {
+            background-color: #FAFAFA;
+            color: #1A1A1A;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Glassmorphism Utilities */
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .glass-dark {
+            background: rgba(26, 26, 26, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Text Gradients */
+        .text-gradient {
+            background: linear-gradient(135deg, #0F5132 0%, #D4AF37 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #FAFAFA; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #D4AF37; 
+            border-radius: 4px;
+        }
+
+        /* Entrance Overlay */
+        #entrance-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9999;
+            background-color: #FAFAFA;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none; /* Allow clicks to pass through once opacity is 0 */
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1; /* Behind content in hero */
+            pointer-events: none;
+        }
+
+        .nav-overlay {
+            clip-path: circle(0% at 100% 0);
+            transition: clip-path 0.8s cubic-bezier(0.77, 0, 0.175, 1);
+        }
+        .nav-overlay.active {
+            clip-path: circle(150% at 100% 0);
+        }
+    </style>
+</head>
+<body class="relative">
+
+    <!-- 1. Cinematic Entrance Overlay -->
+    <div id="entrance-overlay">
+        <!-- Canvas for Gold Dust sits inside here initially or we reuse the main one -->
+        <div class="text-center z-10 opacity-0 entrance-text">
+            <h1 class="text-3xl md:text-5xl font-light tracking-[0.2em] text-brand-black">SHOFFOL</h1>
+            <p class="text-sm md:text-base text-brand-gold mt-2 tracking-widest uppercase">Managers Bureau de Change</p>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 w-full z-50 px-6 py-6 flex justify-between items-center transition-all duration-300" id="navbar">
+        <!-- Logo with ID for GSAP color switching -->
+        <a href="#" id="main-logo" class="text-xl font-bold tracking-widest z-50 text-brand-green transition-colors duration-300">SHOFFOL.</a>
+        
+        <!-- Desktop Menu -->
+        <div class="hidden md:flex space-x-12 items-center">
+            <a href="#services" class="text-sm uppercase tracking-widest hover:text-brand-gold transition-colors text-brand-black mix-blend-multiply">Services</a>
+            <a href="#reviews" class="text-sm uppercase tracking-widest hover:text-brand-gold transition-colors text-brand-black mix-blend-multiply">Reviews</a>
+            <a href="#location" class="text-sm uppercase tracking-widest hover:text-brand-gold transition-colors text-brand-black mix-blend-multiply">Location</a>
+            <a href="https://wa.me/message/IXKSOJ2M6BPNN1" target="_blank" class="px-6 py-2 border border-brand-green/20 rounded-full text-sm uppercase tracking-widest hover:bg-brand-green hover:text-white transition-all duration-300 mix-blend-multiply bg-white/50 backdrop-blur-sm">
+                Contact
+            </a>
+        </div>
+
+        <!-- Mobile Hamburger -->
+        <button id="menu-btn" class="md:hidden z-50 focus:outline-none group">
+            <div class="w-8 h-[1px] bg-brand-black mb-2 transition-transform group-hover:bg-brand-gold"></div>
+            <div class="w-8 h-[1px] bg-brand-black transition-transform group-hover:bg-brand-gold"></div>
+        </button>
+    </nav>
+
+    <!-- Mobile Menu Overlay -->
+    <div id="mobile-menu" class="fixed inset-0 bg-white z-40 nav-overlay flex flex-col justify-center items-center">
+        <div class="flex flex-col space-y-8 text-center">
+            <a href="#services" class="mobile-link text-3xl font-light text-brand-black hover:text-brand-gold">Services</a>
+            <a href="#reviews" class="mobile-link text-3xl font-light text-brand-black hover:text-brand-gold">Reviews</a>
+            <a href="#location" class="mobile-link text-3xl font-light text-brand-black hover:text-brand-gold">Find Us</a>
+            <a href="https://wa.me/message/IXKSOJ2M6BPNN1" class="mobile-link text-3xl font-light text-brand-green mt-8">WhatsApp Us</a>
+        </div>
+    </div>
+
+    <!-- 2. Hero Section -->
+    <section class="relative h-screen w-full flex items-center justify-center overflow-hidden">
+        <canvas id="heroCanvas"></canvas>
+        
+        <div class="relative z-10 text-center px-4 max-w-5xl mx-auto">
+            <p class="hero-subtitle text-brand-green text-sm md:text-lg uppercase tracking-[0.3em] mb-6 opacity-0">Premium Exchange</p>
+            
+            <h1 class="hero-title text-5xl md:text-7xl lg:text-8xl font-medium leading-tight mb-8 opacity-0">
+                <span class="block text-brand-black">Buy and sell</span>
+                <span class="text-gradient font-light italic">your currency</span>
+            </h1>
+
+            <p class="hero-subtext text-xl md:text-2xl text-gray-500 font-light mb-12 opacity-0">
+                Bring deals. Experience seamless global transactions.
+            </p>
+
+            <div class="hero-cta opacity-0">
+                <a href="https://wa.me/message/IXKSOJ2M6BPNN1" target="_blank" class="glass inline-flex items-center gap-3 px-8 py-4 rounded-full text-brand-black hover:bg-brand-green hover:text-white hover:border-transparent transition-all duration-500 group">
+                    <span class="uppercase tracking-widest text-sm">Start Transaction</span>
+                    <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Scroll Indicator -->
+        <div class="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-50 animate-bounce">
+            <span class="text-[10px] uppercase tracking-widest">Scroll</span>
+            <div class="w-[1px] h-12 bg-gradient-to-b from-brand-black to-transparent"></div>
+        </div>
+    </section>
+
+    <!-- 3. Services Section -->
+    <!-- CHANGED: Reduced py-32 to py-16 to reduce space -->
+    <section id="services" class="py-16 px-6 md:px-12 bg-white relative">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex flex-col md:flex-row justify-between items-end mb-12 section-header">
+                <div>
+                    <h2 class="text-4xl md:text-5xl font-light text-brand-black mb-4">Our Services</h2>
+                    <div class="h-[1px] w-24 bg-brand-gold"></div>
+                </div>
+                <p class="mt-6 md:mt-0 max-w-md text-gray-500 font-light text-right">
+                    We specialize in <span class="text-brand-green font-normal">Gold sales, foreign transactions, and global currency exchange</span> for the modern global citizen.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Service 1: Gold Sales -->
+                <div class="service-card group p-8 border border-gray-100 hover:border-brand-gold/30 bg-gray-50 hover:bg-white hover:shadow-2xl hover:shadow-brand-gold/10 transition-all duration-500 rounded-2xl">
+                    <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-6 shadow-sm group-hover:scale-110 transition-transform">
+                        <i data-lucide="coins" class="text-brand-gold w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-xl font-medium mb-3 text-brand-black">Gold Sales</h3>
+                    <p class="text-gray-500 font-light text-sm leading-relaxed">
+                        Secure acquisition and liquidation of investment-grade gold with transparent pricing.
+                    </p>
+                </div>
+
+                <!-- Service 2: Foreign Transactions -->
+                <div class="service-card group p-8 border border-gray-100 hover:border-brand-green/30 bg-gray-50 hover:bg-white hover:shadow-2xl hover:shadow-brand-green/10 transition-all duration-500 rounded-2xl delay-100">
+                    <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-6 shadow-sm group-hover:scale-110 transition-transform">
+                        <i data-lucide="globe-2" class="text-brand-green w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-xl font-medium mb-3 text-brand-black">Foreign Transactions</h3>
+                    <p class="text-gray-500 font-light text-sm leading-relaxed">
+                        Seamless cross-border payments with competitive rates and rapid settlement times.
+                    </p>
+                </div>
+
+                <!-- Service 3: Global Currency Exchange -->
+                <div class="service-card group p-8 border border-gray-100 hover:border-brand-black/30 bg-gray-50 hover:bg-white hover:shadow-2xl hover:shadow-black/5 transition-all duration-500 rounded-2xl delay-200">
+                    <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-6 shadow-sm group-hover:scale-110 transition-transform">
+                        <i data-lucide="banknote" class="text-brand-black w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-xl font-medium mb-3 text-brand-black">Global Currency Exchange</h3>
+                    <p class="text-gray-500 font-light text-sm leading-relaxed">
+                        Instant currency conversion for all major global pairs at market-leading rates.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. Reviews & Trust Section -->
+    <!-- CHANGED: Reduced py-32 to py-16 to reduce space from top -->
+    <section id="reviews" class="py-16 px-6 md:px-12 bg-brand-black text-brand-white relative overflow-hidden">
+        <!-- Background Elements -->
+        <div class="absolute top-0 right-0 w-96 h-96 bg-brand-green/20 rounded-full blur-[100px]"></div>
+        <div class="absolute bottom-0 left-0 w-96 h-96 bg-brand-gold/10 rounded-full blur-[100px]"></div>
+
+        <div class="max-w-4xl mx-auto relative z-10 text-center">
+            <i data-lucide="quote" class="w-12 h-12 text-brand-gold mx-auto mb-8 opacity-50"></i>
+            
+            <div class="review-slider">
+                <blockquote class="text-2xl md:text-4xl font-light italic leading-relaxed mb-10">
+                    "Exceptional service. The rates were better than the banks, and the transaction was completed in minutes. Shoffol Managers brings a level of professionalism that is rare to find."
+                </blockquote>
+                <div class="flex flex-col items-center justify-center gap-4">
+                    <div class="flex items-center gap-2 text-brand-gold">
+                        <i data-lucide="star" class="fill-current w-5 h-5"></i>
+                        <i data-lucide="star" class="fill-current w-5 h-5"></i>
+                        <i data-lucide="star" class="fill-current w-5 h-5"></i>
+                        <i data-lucide="star" class="fill-current w-5 h-5"></i>
+                        <i data-lucide="star" class="fill-current w-5 h-5"></i>
+                    </div>
+                    <cite class="not-italic text-gray-400 text-sm tracking-widest uppercase">Verified Client</cite>
+                </div>
+            </div>
+
+            <div class="mt-16 flex flex-wrap justify-center gap-6">
+                <a href="https://share.google/4ASgUqDgTtqDPDhzR" target="_blank" class="inline-flex items-center gap-2 text-sm text-gray-300 hover:text-white transition-colors border-b border-transparent hover:border-brand-gold pb-1">
+                    <i data-lucide="external-link" class="w-4 h-4"></i>
+                    Read more reviews
+                </a>
+                <a href="https://share.google/sV5Tq0SE21zYdMO79" target="_blank" class="inline-flex items-center gap-2 text-sm text-gray-300 hover:text-white transition-colors border-b border-transparent hover:border-brand-green pb-1">
+                    <i data-lucide="map-pin" class="w-4 h-4"></i>
+                    Locate on Google Maps
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. CTA / Footer -->
+    <footer id="contact" class="bg-white py-24 px-6 md:px-12 relative border-t border-gray-100">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-12">
+            
+            <div class="text-center md:text-left">
+                <h2 class="text-4xl md:text-6xl font-medium text-brand-black mb-4">Ready to trade?</h2>
+                <p class="text-gray-500 font-light">Secure your rates today.</p>
+            </div>
+
+            <div class="flex flex-col items-center gap-6">
+                <a href="https://wa.me/message/IXKSOJ2M6BPNN1" target="_blank" class="group relative inline-flex h-16 items-center justify-center overflow-hidden rounded-full bg-brand-green px-10 font-medium text-white transition-all duration-300 hover:bg-brand-black hover:scale-105 shadow-xl shadow-brand-green/20">
+                    <div class="absolute inset-0 flex h-full w-full justify-center [transform:skew(-12deg)_translateX(-100%)] group-hover:duration-1000 group-hover:[transform:skew(-12deg)_translateX(100%)]">
+                        <div class="relative h-full w-8 bg-white/20"></div>
+                    </div>
+                    <span class="flex items-center gap-3 text-lg font-light tracking-wide">
+                        <i data-lucide="message-circle" class="w-6 h-6"></i>
+                        Let's talk on WhatsApp
+                    </span>
+                </a>
+                <p class="text-xs text-gray-400 uppercase tracking-widest">Fast • Secure • Reliable</p>
+            </div>
+        </div>
+
+        <div class="mt-24 pt-8 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center text-xs text-gray-400">
+            <p>&copy; 2024 Shoffol Managers. All rights reserved.</p>
+            <div class="flex gap-6 mt-4 md:mt-0">
+                <a href="#" class="hover:text-brand-black">Privacy</a>
+                <a href="#" class="hover:text-brand-black">Terms</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        // Initialize Icons
+        lucide.createIcons();
+
+        // --------------------------------------------------------
+        // CANVAS PARTICLE SYSTEM (Gold Dust)
+        // --------------------------------------------------------
+        const canvas = document.getElementById('heroCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        let width, height;
+        let particles = [];
+        
+        // Colors: Gold and subtle Green
+        const colors = ['rgba(212, 175, 55, 0.4)', 'rgba(212, 175, 55, 0.2)', 'rgba(52, 211, 153, 0.1)'];
+
+        function resize() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+        }
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height - height; // Start above
+                this.size = Math.random() * 2 + 0.5;
+                this.speedY = Math.random() * 1 + 0.2;
+                this.speedX = (Math.random() - 0.5) * 0.5;
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+
+            update() {
+                this.y += this.speedY;
+                this.x += this.speedX;
+
+                // Reset if out of bounds
+                if (this.y > height) {
+                    this.y = -10;
+                    this.x = Math.random() * width;
+                }
+            }
+
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            const particleCount = width < 768 ? 50 : 100; // Optimization for mobile
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, width, height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animateParticles);
+        }
+
+        window.addEventListener('resize', () => {
+            resize();
+            initParticles();
+        });
+
+        // Initialize Canvas
+        resize();
+        initParticles();
+        animateParticles();
+
+
+        // --------------------------------------------------------
+        // GSAP ANIMATIONS
+        // --------------------------------------------------------
+        document.addEventListener("DOMContentLoaded", (event) => {
+            gsap.registerPlugin(ScrollTrigger);
+
+            // 1. Cinematic Entrance Sequence
+            const tl = gsap.timeline();
+
+            // Reveal Intro Text
+            tl.to(".entrance-text", {
+                opacity: 1,
+                duration: 1.5,
+                ease: "power2.out"
+            })
+            // Hold
+            .to(".entrance-text", {
+                opacity: 0,
+                duration: 1,
+                delay: 1,
+                ease: "power2.in"
+            })
+            // Fade out overlay
+            .to("#entrance-overlay", {
+                opacity: 0,
+                duration: 1.5,
+                onComplete: () => {
+                    document.getElementById('entrance-overlay').style.display = 'none';
+                }
+            })
+            // Hero Elements Reveal
+            .to(".hero-subtitle", { y: 0, opacity: 1, duration: 0.8 }, "-=1")
+            .to(".hero-title", { y: 0, opacity: 1, duration: 1 }, "-=0.6")
+            .to(".hero-subtext", { y: 0, opacity: 1, duration: 1 }, "-=0.8")
+            .to(".hero-cta", { y: 0, opacity: 1, duration: 1 }, "-=0.8");
+
+            // 2. Services Animation (ScrollTrigger)
+            gsap.from(".service-card", {
+                scrollTrigger: {
+                    trigger: "#services",
+                    start: "top 70%",
+                    toggleActions: "play none none reverse"
+                },
+                y: 50,
+                opacity: 0,
+                duration: 1,
+                stagger: 0.2,
+                ease: "power3.out"
+            });
+
+            // 3. Section Headers
+            gsap.utils.toArray(".section-header").forEach(header => {
+                gsap.from(header, {
+                    scrollTrigger: {
+                        trigger: header,
+                        start: "top 80%",
+                    },
+                    y: 30,
+                    opacity: 0,
+                    duration: 1,
+                    ease: "power3.out"
+                });
+            });
+
+            // 4. Parallax Effect for Footer
+            gsap.to("footer", {
+                scrollTrigger: {
+                    trigger: "footer",
+                    start: "top bottom",
+                    scrub: true
+                },
+                y: 0,
+                ease: "none"
+            });
+
+            // 5. Logo Color Changer (Green on White, Gold on Black)
+            ScrollTrigger.create({
+                trigger: "#reviews",
+                start: "top 50px", // When reviews hits top nav area
+                end: "bottom 50px",
+                onEnter: () => gsap.to("#main-logo", { color: "#D4AF37", duration: 0.3 }), // Turn Gold
+                onLeave: () => gsap.to("#main-logo", { color: "#0F5132", duration: 0.3 }), // Turn Green (Back to default)
+                onEnterBack: () => gsap.to("#main-logo", { color: "#D4AF37", duration: 0.3 }), // Turn Gold
+                onLeaveBack: () => gsap.to("#main-logo", { color: "#0F5132", duration: 0.3 }) // Turn Green
+            });
+        });
+
+        // --------------------------------------------------------
+        // MOBILE MENU LOGIC
+        // --------------------------------------------------------
+        const menuBtn = document.getElementById('menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const mobileLinks = document.querySelectorAll('.mobile-link');
+        let isMenuOpen = false;
+
+        menuBtn.addEventListener('click', () => {
+            isMenuOpen = !isMenuOpen;
+            if (isMenuOpen) {
+                mobileMenu.classList.add('active');
+                // Animate links in
+                gsap.fromTo(".mobile-link", 
+                    { y: 20, opacity: 0 },
+                    { y: 0, opacity: 1, duration: 0.5, stagger: 0.1, delay: 0.3 }
+                );
+            } else {
+                mobileMenu.classList.remove('active');
+            }
+        });
+
+        // Close menu when link clicked
+        mobileLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                isMenuOpen = false;
+                mobileMenu.classList.remove('active');
+            });
+        });
+
+    </script>
+</body>
+</html>
